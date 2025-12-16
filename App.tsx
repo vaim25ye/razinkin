@@ -213,111 +213,75 @@ function App() {
           )}
       </header>
 
-      {/* Main Content Body */}
+      {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden relative">
         
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px] opacity-50 pointer-events-none"></div>
-
-        {/* VIEW: FORM */}
-        {viewMode === 'form' && (
-          <>
-            <div 
-              ref={scrollContainerRef}
-              className="flex-1 lg:mr-80 flex flex-col h-full overflow-y-auto scroll-smooth relative z-10"
-            >
-              <main className="flex-1 p-4 md:p-10 max-w-3xl mx-auto w-full pb-40">
-                <div className="mb-6 flex justify-between items-end">
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-800">Заполнение формы</h2>
-                      <p className="text-xs text-slate-400 mt-1">
-                        Все вопросы анкеты
-                      </p>
-                    </div>
-                    <span className={clsx(
-                      "text-sm font-medium px-3 py-1 rounded-full border transition-colors",
-                      isFormComplete ? "bg-green-50 text-green-700 border-green-200" : "bg-blue-50 text-blue-600 border-blue-100"
-                    )}>
-                        {isFormComplete ? "Готово к сохранению" : `${answeredCount} из ${SURVEY_QUESTIONS.length} заполнено`}
-                    </span>
-                </div>
-
-                {SURVEY_QUESTIONS.map((q, idx) => (
-                   <QuestionCard
-                     key={q.id}
-                     question={q}
-                     answer={answers[q.id]}
-                     onChange={(val, preventScroll) => handleAnswerChange(q.id, val, preventScroll)}
-                     isActive={activeQuestionId === q.id}
-                   />
-                ))}
-
-                {isFormComplete && (
-                  <div className={clsx(
-                    "mt-12 p-10 border-2 border-dashed rounded-3xl text-center transition-all duration-300 animate-in fade-in slide-in-from-bottom-8",
-                    "bg-white/80 border-blue-300 hover:border-blue-400"
-                  )}>
-                    <CheckCircle2 className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-                    
-                    <p className="mb-6 font-medium text-lg text-slate-700">
-                      Анкета заполнена полностью
-                    </p>
-                    
-                    <button 
-                       onClick={saveCurrentSurvey}
-                       disabled={syncStatus === 'syncing'}
-                       className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl font-bold text-lg transition-all bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-200 hover:-translate-y-1 active:scale-95 cursor-pointer"
-                     >
-                       {syncStatus === 'syncing' ? (
-                         <Loader2 className="w-6 h-6 animate-spin" />
-                       ) : (
-                         <Plus className="w-6 h-6" />
-                       )}
-                       Завершить и Сохранить
-                     </button>
+        {/* Main Panel */}
+        <div className={clsx(
+          "flex-1 overflow-hidden flex flex-col transition-all duration-300",
+          viewMode === 'form' ? "mr-0 lg:mr-80" : "mr-0"
+        )}>
+          {viewMode === 'form' ? (
+             <div 
+               ref={scrollContainerRef}
+               className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth"
+             >
+               <div className="max-w-3xl mx-auto pb-40">
+                  {SURVEY_QUESTIONS.map((q) => (
+                    <QuestionCard
+                      key={q.id}
+                      question={q}
+                      answer={answers[q.id]}
+                      onChange={(val: any, preventScroll?: boolean) => handleAnswerChange(q.id, val, preventScroll)}
+                      isActive={activeQuestionId === q.id}
+                    />
+                  ))}
+                  
+                  {/* End of Form Action */}
+                  <div className="mt-12 p-8 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 text-center">
+                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-blue-500">
+                         <CheckCircle2 className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-800 mb-2">Анкета заполнена</h3>
+                      <p className="text-slate-500 mb-6">Проверьте ответы перед сохранением.</p>
+                      <button 
+                         onClick={saveCurrentSurvey}
+                         disabled={!isFormComplete}
+                         className={clsx(
+                           "px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95 mx-auto flex items-center gap-2",
+                           isFormComplete ? "bg-blue-600 hover:bg-blue-700 hover:shadow-blue-500/25" : "bg-slate-300 cursor-not-allowed"
+                         )}
+                       >
+                         <Save className="w-5 h-5" />
+                         Сохранить в базу
+                       </button>
                   </div>
-                )}
-              </main>
-
-              {/* Floating Scroll Top */}
-              <button 
-                onClick={() => scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth'})}
-                className={clsx(
-                    "fixed bottom-8 left-8 bg-slate-800/90 backdrop-blur text-white p-3 rounded-full shadow-2xl transition-all duration-300 z-30 hover:bg-slate-700 hover:scale-110",
-                    (scrollContainerRef.current?.scrollTop || 0) > 500 || activeQuestionId > 3 ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"
-                )}
-              >
-                <ArrowUp className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Sidebar */}
-            <Sidebar 
-              completedSurveys={completedSurveys}
-              onExport={() => exportToExcel(completedSurveys)}
-              onClearAll={handleClearAll}
-              currentId={""}
-            />
-          </>
-        )}
-
-        {/* VIEW: TABLE */}
-        {viewMode === 'table' && (
-          <div className="flex-1 h-full w-full z-10">
+               </div>
+             </div>
+          ) : (
             <TableView data={completedSurveys} />
-          </div>
-        )}
+          )}
+        </div>
 
+        {/* Sidebar (Only visible in Form mode) */}
+        {viewMode === 'form' && (
+           <Sidebar 
+             completedSurveys={completedSurveys} 
+             onExport={() => exportToExcel(completedSurveys)}
+             onClearAll={handleClearAll}
+             currentId={""}
+           />
+        )}
+        
       </div>
 
-      {/* Settings Modal */}
       <GoogleSheetsSettings 
         isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)}
+        onClose={() => setIsSettingsOpen(false)} 
         savedUrl={googleScriptUrl}
         onSaveUrl={handleSaveUrl}
       />
-
+      
     </div>
   );
 }
