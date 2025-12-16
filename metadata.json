@@ -1,0 +1,5 @@
+{
+  "name": "Medical Survey Digitizer",
+  "description": "High-efficiency data entry application for digitizing handwritten medical questionnaires into structured Excel-compatible formats.",
+  "requestFramePermissions": []
+}
